@@ -7,6 +7,7 @@ import { commitBasline } from './commit';
 import { json } from 'stream/consumers';
 import { stringify } from 'querystring';
 import { env } from "process";
+import { pipelineScan } from './pipelineScan';
 import * as github from '@actions/github'
 
 // get input params
@@ -129,223 +130,224 @@ parameters['esd'] = esd
 
 
 async function run (parameters:any){
-    downloadJar()
-    let scanCommandValue = await checkParameters(parameters)
+    let scanCommandOutput = await pipelineScan(parameters)
+    // downloadJar()
+    // let scanCommandValue = await checkParameters(parameters)
 
-    if (parameters.debug == 1 ){
-        core.info('---- DEBUG OUTPUT START ----')
-        core.info('---- index.ts / run() before run ----')
-        core.info('---- Pipeline Scan Command: '+scanCommandValue)
-        core.info('---- DEBUG OUTPUT END ----')
-    }
+    // if (parameters.debug == 1 ){
+    //     core.info('---- DEBUG OUTPUT START ----')
+    //     core.info('---- index.ts / run() before run ----')
+    //     core.info('---- Pipeline Scan Command: '+scanCommandValue)
+    //     core.info('---- DEBUG OUTPUT END ----')
+    // }
 
-    core.info('Running the Pipeline Scan')
-    let scanCommandOutput = await runScan(scanCommandValue,parameters)
+    // core.info('Running the Pipeline Scan')
+    // let scanCommandOutput = await runScan(scanCommandValue,parameters)
 
-    core.info('Pipeline Scan Output')
-    core.info(scanCommandOutput)
+    // core.info('Pipeline Scan Output')
+    // core.info(scanCommandOutput)
 
-    //check if the results files exist and if not create empty files
-    if ( !existsSync('results.json') ){
-        core.info('results.json does not exist - creating empty file')
-        let emptyResults = {
-            "findings": []
-        }
-        let emptyResultsString = JSON.stringify(emptyResults)
-        let emptyResultsFile = 'results.json'
-        let emptyResultsFilteredFile = 'filtered_results.json'
+    // //check if the results files exist and if not create empty files
+    // if ( !existsSync('results.json') ){
+    //     core.info('results.json does not exist - creating empty file')
+    //     let emptyResults = {
+    //         "findings": []
+    //     }
+    //     let emptyResultsString = JSON.stringify(emptyResults)
+    //     let emptyResultsFile = 'results.json'
+    //     let emptyResultsFilteredFile = 'filtered_results.json'
 
-        try {
-            writeFileSync(emptyResultsFile,emptyResultsString)
-        } catch (error) {
-            core.info('Error creating empty results files')
-        }
-    }
+    //     try {
+    //         writeFileSync(emptyResultsFile,emptyResultsString)
+    //     } catch (error) {
+    //         core.info('Error creating empty results files')
+    //     }
+    // }
 
-    const rootDirectory = process.cwd()
-    if (parameters.debug == 1 ){
-        core.info('---- DEBUG OUTPUT START ----')
-        core.info('---- index.ts / run() before create artifacts ----')
-        core.info('---- Roof folder: '+rootDirectory)
-        core.info('---- Results Json File: '+rootDirectory+'/'+parameters.json_output_file)
-        core.info('---- Filtered Results Json File: '+rootDirectory+'/'+parameters.filtered_json_output_file)
-        core.info('---- Summary Output File: '+rootDirectory+'/'+parameters.summary_output_file)
-        core.info('---- DEBUG OUTPUT END ----')
-    }
+    // const rootDirectory = process.cwd()
+    // if (parameters.debug == 1 ){
+    //     core.info('---- DEBUG OUTPUT START ----')
+    //     core.info('---- index.ts / run() before create artifacts ----')
+    //     core.info('---- Roof folder: '+rootDirectory)
+    //     core.info('---- Results Json File: '+rootDirectory+'/'+parameters.json_output_file)
+    //     core.info('---- Filtered Results Json File: '+rootDirectory+'/'+parameters.filtered_json_output_file)
+    //     core.info('---- Summary Output File: '+rootDirectory+'/'+parameters.summary_output_file)
+    //     core.info('---- DEBUG OUTPUT END ----')
+    // }
 
-    const { DefaultArtifactClient } = require('@actions/artifact');
-    const artifactV1 = require('@actions/artifact-v1');
-    let artifactClient;
+    // const { DefaultArtifactClient } = require('@actions/artifact');
+    // const artifactV1 = require('@actions/artifact-v1');
+    // let artifactClient;
 
-    if (platformType === 'ENTERPRISE') {
-        artifactClient = artifactV1.create();
-        core.info(`Initialized the artifact object using version V1.`);
-    } else {
-        artifactClient = new DefaultArtifactClient();
-        core.info(`Initialized the artifact object using version V2.`);
-    }
+    // if (platformType === 'ENTERPRISE') {
+    //     artifactClient = artifactV1.create();
+    //     core.info(`Initialized the artifact object using version V1.`);
+    // } else {
+    //     artifactClient = new DefaultArtifactClient();
+    //     core.info(`Initialized the artifact object using version V2.`);
+    // }
 
-    //check if results files exists and if so store them as artifacts
-    if ( existsSync(rootDirectory+'/'+parameters.json_output_file && rootDirectory+'/'+parameters.filtered_json_output_file && rootDirectory+'/'+parameters.summary_output_file) ){
-        core.info('Results files exist - storing as artifact')
+    // //check if results files exists and if so store them as artifacts
+    // if ( existsSync(rootDirectory+'/'+parameters.json_output_file && rootDirectory+'/'+parameters.filtered_json_output_file && rootDirectory+'/'+parameters.summary_output_file) ){
+    //     core.info('Results files exist - storing as artifact')
     
         
-        //store output files as artifacts
-        const artifactName = 'Veracode Pipeline-Scan Results - '+parameters.artifact_name;
-        const files = [
-            parameters.json_output_file,
-            parameters.filtered_json_output_file,
-            parameters.summary_output_file
-        ]
+    //     //store output files as artifacts
+    //     const artifactName = 'Veracode Pipeline-Scan Results - '+parameters.artifact_name;
+    //     const files = [
+    //         parameters.json_output_file,
+    //         parameters.filtered_json_output_file,
+    //         parameters.summary_output_file
+    //     ]
 
 
-        const rootDirectory = process.cwd()
-        const options = {
-            continueOnError: true
-        }
+    //     const rootDirectory = process.cwd()
+    //     const options = {
+    //         continueOnError: true
+    //     }
 
-        try {
-            const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory, options)
-            core.info('Artifact upload result:')
-            core.info(uploadResult)
-        } catch (error) {
-            core.info('Artifact upload failed:')
-            core.info(String(error))
-        }
-
-
-        if (parameters.debug == 1 ){
-            core.info('---- DEBUG OUTPUT START ----')
-            core.info('---- index.ts / run() create artifacts ----')
-            core.info('---- Artifact filenames: '+files)
-            core.info('---- DEBUG OUTPUT END ----')
-        }
-
-    }
-    else {
-        core.info('Results files do not exist - no artifact to store')
-
-        core.info(parameters.filtered_json_output_file+' does not exist - creating empty file')
-        let emptyResults = {
-            "findings": []
-        }
-        let emptyResultsString = JSON.stringify(emptyResults)
-        let emptyResultsFilteredFile = parameters.filtered_json_output_file
-
-        try {
-            writeFileSync(emptyResultsFilteredFile,emptyResultsString)
-        } catch (error) {
-            core.info('Error creating empty results files')
-        }
-
-        const artifactName = 'Veracode Pipeline-Scan Results - '+parameters.artifact_name;
-        const files = [
-            parameters.filtered_json_output_file
-        ]
+    //     try {
+    //         const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory, options)
+    //         core.info('Artifact upload result:')
+    //         core.info(uploadResult)
+    //     } catch (error) {
+    //         core.info('Artifact upload failed:')
+    //         core.info(String(error))
+    //     }
 
 
-        const rootDirectory = process.cwd()
-        const options = {
-            continueOnError: true
-        }
+    //     if (parameters.debug == 1 ){
+    //         core.info('---- DEBUG OUTPUT START ----')
+    //         core.info('---- index.ts / run() create artifacts ----')
+    //         core.info('---- Artifact filenames: '+files)
+    //         core.info('---- DEBUG OUTPUT END ----')
+    //     }
 
-        try {
-            const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory, options)
-            core.info('Artifact upload result:')
-            core.info(uploadResult)
-        } catch (error) {
-            core.info('Artifact upload failed:')
-            core.info(String(error))
-        }
-    }
+    // }
+    // else {
+    //     core.info('Results files do not exist - no artifact to store')
 
+    //     core.info(parameters.filtered_json_output_file+' does not exist - creating empty file')
+    //     let emptyResults = {
+    //         "findings": []
+    //     }
+    //     let emptyResultsString = JSON.stringify(emptyResults)
+    //     let emptyResultsFilteredFile = parameters.filtered_json_output_file
 
-    if ( parameters.store_baseline_file == 'true'){
-        core.info('Baseline File should be stored')
-        let commitCommandOutput:any = await commitBasline(parameters)
-        core.info('Git Command Output')
-        core.info(commitCommandOutput)
-    }
+    //     try {
+    //         writeFileSync(emptyResultsFilteredFile,emptyResultsString)
+    //     } catch (error) {
+    //         core.info('Error creating empty results files')
+    //     }
 
-    core.info('check if we run on a pull request')
-    let pullRequest = process.env.GITHUB_REF
-    let isPR:any = pullRequest?.indexOf("pull")
-
-    if ( isPR >= 1 ){
-        core.info("This run is part of a PR, should add some PR comment")
-
-        if ( scanCommandOutput.length >= 1 ){
-            core.info('Results are not empty - adding PR comment')
-
-            const context = github.context
-            const repository:any = process.env.GITHUB_REPOSITORY
-            const token = core.getInput("token")
-            const repo = repository.split("/");
-            const commentID:any = context.payload.pull_request?.number
+    //     const artifactName = 'Veracode Pipeline-Scan Results - '+parameters.artifact_name;
+    //     const files = [
+    //         parameters.filtered_json_output_file
+    //     ]
 
 
-            //creating the body for the comment
-            let commentBody = scanCommandOutput
-            commentBody = commentBody.substring(commentBody.indexOf('Scan Summary'))
-            commentBody = commentBody.replace('===\n---','===\n<details><summary>details</summary><p>\n---')
-            commentBody = commentBody.replace('---\n\n===','---\n</p></details>\n===')
-            commentBody = commentBody.replace(/\n/g,'<br>')
-            commentBody = '<br>![](https://www.veracode.com/themes/veracode_new/library/img/veracode-black-hires.svg)<br>' + commentBody
+    //     const rootDirectory = process.cwd()
+    //     const options = {
+    //         continueOnError: true
+    //     }
 
-            core.info('Comment Body '+commentBody)
-
-
-            if (parameters.debug == 1 ){
-                core.info('---- DEBUG OUTPUT START ----')
-                core.info('---- index.ts / run() check if on PR  ----')
-                core.info('---- Repository: '+repository)
-                core.info('---- Token: '+token)
-                core.info('---- Comment ID: '+commentID)
-                //core.info('---- Context: '+JSON.stringify(context))
-                core.info('---- DEBUG OUTPUT END ----')
-            }
-
-            try {
-                const octokit = github.getOctokit(token);
-
-                const { data: comment } = await octokit.rest.issues.createComment({
-                    owner: repo[0],
-                    repo: repo[1],
-                    issue_number: commentID,
-                    body: commentBody,
-                });
-                core.info('Adding scan results as comment to PR #'+commentID)
-            } catch (error:any) {
-                core.info(error);
-            }
-        }
-        else {
-            core.info('Results are empty - no need to add PR comment')
-        }
-    }
-    else {
-        core.info('We are not running on a pull request')
-    }
-
-    if ( parameters.fail_build == "true" && workflow_app == "false"){
-        core.info('Check if we need to fail the build')
-        const failureRegex = /FAILURE: Found \d+ issues!/
-        let failBuild = failureRegex.test(scanCommandOutput)
+    //     try {
+    //         const uploadResult = await artifactClient.uploadArtifact(artifactName, files, rootDirectory, options)
+    //         core.info('Artifact upload result:')
+    //         core.info(uploadResult)
+    //     } catch (error) {
+    //         core.info('Artifact upload failed:')
+    //         core.info(String(error))
+    //     }
+    // }
 
 
-        if (parameters.debug == 1 ){
-            core.info('---- DEBUG OUTPUT START ----')
-            core.info('---- index.ts / run() check if we need to fail the build ----')
-            core.info('---- Fail build value found : '+failBuild)
-            core.info('---- DEBUG OUTPUT END ----')     
-        }
+    // if ( parameters.store_baseline_file == 'true'){
+    //     core.info('Baseline File should be stored')
+    //     let commitCommandOutput:any = await commitBasline(parameters)
+    //     core.info('Git Command Output')
+    //     core.info(commitCommandOutput)
+    // }
+
+    // core.info('check if we run on a pull request')
+    // let pullRequest = process.env.GITHUB_REF
+    // let isPR:any = pullRequest?.indexOf("pull")
+
+    // if ( isPR >= 1 ){
+    //     core.info("This run is part of a PR, should add some PR comment")
+
+    //     if ( scanCommandOutput.length >= 1 ){
+    //         core.info('Results are not empty - adding PR comment')
+
+    //         const context = github.context
+    //         const repository:any = process.env.GITHUB_REPOSITORY
+    //         const token = core.getInput("token")
+    //         const repo = repository.split("/");
+    //         const commentID:any = context.payload.pull_request?.number
 
 
-        if ( failBuild ){
-            core.info('There are flaws found that require the build to fail')
-            core.setFailed(scanCommandOutput)
-        }
-    }
+    //         //creating the body for the comment
+    //         let commentBody = scanCommandOutput
+    //         commentBody = commentBody.substring(commentBody.indexOf('Scan Summary'))
+    //         commentBody = commentBody.replace('===\n---','===\n<details><summary>details</summary><p>\n---')
+    //         commentBody = commentBody.replace('---\n\n===','---\n</p></details>\n===')
+    //         commentBody = commentBody.replace(/\n/g,'<br>')
+    //         commentBody = '<br>![](https://www.veracode.com/themes/veracode_new/library/img/veracode-black-hires.svg)<br>' + commentBody
+
+    //         core.info('Comment Body '+commentBody)
+
+
+    //         if (parameters.debug == 1 ){
+    //             core.info('---- DEBUG OUTPUT START ----')
+    //             core.info('---- index.ts / run() check if on PR  ----')
+    //             core.info('---- Repository: '+repository)
+    //             core.info('---- Token: '+token)
+    //             core.info('---- Comment ID: '+commentID)
+    //             //core.info('---- Context: '+JSON.stringify(context))
+    //             core.info('---- DEBUG OUTPUT END ----')
+    //         }
+
+    //         try {
+    //             const octokit = github.getOctokit(token);
+
+    //             const { data: comment } = await octokit.rest.issues.createComment({
+    //                 owner: repo[0],
+    //                 repo: repo[1],
+    //                 issue_number: commentID,
+    //                 body: commentBody,
+    //             });
+    //             core.info('Adding scan results as comment to PR #'+commentID)
+    //         } catch (error:any) {
+    //             core.info(error);
+    //         }
+    //     }
+    //     else {
+    //         core.info('Results are empty - no need to add PR comment')
+    //     }
+    // }
+    // else {
+    //     core.info('We are not running on a pull request')
+    // }
+
+    // if ( parameters.fail_build == "true" && workflow_app == "false"){
+    //     core.info('Check if we need to fail the build')
+    //     const failureRegex = /FAILURE: Found \d+ issues!/
+    //     let failBuild = failureRegex.test(scanCommandOutput)
+
+
+    //     if (parameters.debug == 1 ){
+    //         core.info('---- DEBUG OUTPUT START ----')
+    //         core.info('---- index.ts / run() check if we need to fail the build ----')
+    //         core.info('---- Fail build value found : '+failBuild)
+    //         core.info('---- DEBUG OUTPUT END ----')     
+    //     }
+
+
+    //     if ( failBuild ){
+    //         core.info('There are flaws found that require the build to fail')
+    //         core.setFailed(scanCommandOutput)
+    //     }
+    // }
 
 }
 
