@@ -40750,6 +40750,7 @@ function run_cli(command, debug, failBuildOnError) {
                 core.info(`${curlCommandOutput}`);
             }
             catch (error) {
+                console.log(error);
                 const failureMessage = `Veracode CLI scan failed. Exit code: ${error.status}, Command: ${scanCommand}`;
                 const failBuildOnErrorBool = String(failBuildOnError).toLowerCase() === "true";
                 if (failBuildOnErrorBool) {

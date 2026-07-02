@@ -53,6 +53,7 @@ export async function run_cli(command: string, debug: any, failBuildOnError: boo
             }
             core.info(`${curlCommandOutput}`)
         } catch (error: any) {
+            console.log(error)
             const failureMessage = `Veracode CLI scan failed. Exit code: ${error.status}, Command: ${scanCommand}`;
             const failBuildOnErrorBool = String(failBuildOnError).toLowerCase() === "true";
             if (failBuildOnErrorBool) {
