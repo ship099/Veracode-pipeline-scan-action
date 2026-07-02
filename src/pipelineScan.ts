@@ -16,7 +16,8 @@ try{
 
   env.VERACODE_API_KEY_ID= parameters.vid
   env.VERACODE_API_KEY_SECRET= parameters.vkey
-  let pipelineScanCommand = `static scan ${parameters.artifact_name} --verbose`;
+
+  let pipelineScanCommand = `static scan ${parameters.file} --verbose`;
 run_cli(pipelineScanCommand, parameters.debug,parameters.fail_build);
 }catch(error:any){
     console.log(`Status Code: ${error.status} with '${error.message}'`);

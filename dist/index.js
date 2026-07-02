@@ -40645,7 +40645,7 @@ function pipelineScan(parameters) {
             (0, install_cli_1.install_cli)(parameters);
             process_1.env.VERACODE_API_KEY_ID = parameters.vid;
             process_1.env.VERACODE_API_KEY_SECRET = parameters.vkey;
-            let pipelineScanCommand = `static scan ${parameters.artifact_name} --verbose`;
+            let pipelineScanCommand = `static scan ${parameters.file} --verbose`;
             (0, run_command_1.run_cli)(pipelineScanCommand, parameters.debug, parameters.fail_build);
         }
         catch (error) {
