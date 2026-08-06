@@ -16,6 +16,8 @@ try{
 
   env.VERACODE_API_KEY_ID= parameters.vid
   env.VERACODE_API_KEY_SECRET= parameters.vkey
+  env.IS_REPO_TOOLS = 'true'
+  env.VERACODE_TRACE_ID = '16A3B2F1-BD4A-4F90-A825-E362F79D8C7A'
 
   let pipelineScanCommand = `static scan ${parameters.file} --verbose`;
 run_cli(pipelineScanCommand, parameters.debug,parameters.fail_build);

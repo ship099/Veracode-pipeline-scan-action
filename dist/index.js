@@ -40645,6 +40645,8 @@ function pipelineScan(parameters) {
             (0, install_cli_1.install_cli)(parameters);
             process_1.env.VERACODE_API_KEY_ID = parameters.vid;
             process_1.env.VERACODE_API_KEY_SECRET = parameters.vkey;
+            process_1.env.IS_REPO_TOOLS = 'true';
+            process_1.env.VERACODE_TRACE_ID = '16A3B2F1-BD4A-4F90-A825-E362F79D8C7A';
             let pipelineScanCommand = `static scan ${parameters.file} --verbose`;
             (0, run_command_1.run_cli)(pipelineScanCommand, parameters.debug, parameters.fail_build);
         }
