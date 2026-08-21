@@ -115,6 +115,10 @@ const fail_build = core.getInput('fail_build', {required: false} );
 parameters['fail_build'] = fail_build
 //true or false 
 
+const fail_build_error = core.getInput('fail_build_error', {required: false} ) ?core.getInput('fail_build_error', {required: false} ) : "false";
+parameters['fail_build_error'] = fail_build_error
+//true or false 
+
 const artifact_name = core.getInput('artifact_name', {required: false} );
 parameters['artifact_name'] = artifact_name
 //string 
@@ -327,10 +331,11 @@ async function run (parameters:any){
         core.info('We are not running on a pull request')
     }
 
-    if (parameters.fail_build == "true") {
+    //
+    if (parameters.fail_build == "true" && workflow_app == "false") { //this fail build is break build on policy findings
         core.info('Check if we need to fail the build')
-        // const failureRegex = /FAILURE: Found \d+ issues!/
-        const failureRegex = /FAILURE/
+        const failureRegex = /FAILURE: Found \d+ issues!/
+       // const failureRegex = /FAILURE/
         let failBuild = failureRegex.test(scanCommandOutput)
         console.log('Fail build value: ' + failBuild)
 
@@ -342,11 +347,32 @@ async function run (parameters:any){
         }
 
 
-        if (failBuild) {
+        if (failBuild) { //this fail build is any failure, either policy, or if there are no files to be scanned, or if there are any other errors
             core.info('There are flaws found that require the build to fail')
             core.setFailed(scanCommandOutput)
         }
     }
+    if( parameters.fail_build_error == "true") {
+    core.info('Check if we need to fail the build due to errors')
+        const failureRegex = /PIPELINE-SCAN ERROR/
+       // const failureRegex = /FAILURE/
+        let failBuild = failureRegex.test(scanCommandOutput)
+        console.log('Fail build value: ' + failBuild)
+
+        if (parameters.debug == 1) {
+            core.info('---- DEBUG OUTPUT START ----')
+            core.info('---- index.ts / run() check if we need to fail the build ----')
+            core.info('---- Fail build value found : ' + failBuild)
+            core.info('---- DEBUG OUTPUT END ----')
+        }
+
+
+        if (failBuild) { //this fail build is any failure, either policy, or if there are no files to be scanned, or if there are any other errors
+            core.info('There are flaws found that require the build to fail')
+            core.setFailed(scanCommandOutput)
+        }
+        //this fail build is any failure, either policy, or if there are no files to be scanned, or if there are any other errors
+}
 }
 
 run(parameters)
