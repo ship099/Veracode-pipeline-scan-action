@@ -45495,36 +45495,40 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.install_cli = void 0;
 const core = __importStar(__nccwpck_require__(1055));
 const child_process_1 = __nccwpck_require__(5317);
-const path_1 = __importDefault(__nccwpck_require__(6928));
 const runnerOS = process.env.RUNNER_OS;
 function install_cli(parameters) {
-    var _a;
-    try {
-        if (runnerOS == 'Windows') {
-            const appdata = (_a = process.env.APPDATA) !== null && _a !== void 0 ? _a : "";
-            const cliPathVera = path_1.default.join(appdata, 'veracode');
-            const installCommand = `curl -sSO https://downloads.veracode.com/securityscan/veracode-cli-windows.exe && move veracode-cli-windows.exe "${cliPathVera}\\veracode.exe"`;
-            core.info(`Installing Veracode CLI on Windows: ${cliPathVera}`);
-            (0, child_process_1.execSync)(installCommand);
-            core.info('Veracode CLI installed successfully');
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            if (runnerOS == 'Windows') {
+                const psCommand = `Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://tools.veracode.com/veracode-cli/install.ps1'))`;
+                core.info('Installing Veracode CLI on Windows');
+                (0, child_process_1.execSync)(`powershell.exe -NoProfile -Command "${psCommand}"`, { stdio: 'inherit' });
+                core.info('Veracode CLI installed successfully');
+            }
+            else {
+                const installCommand = `cd ..; mkdir -p veracode-cli; cd veracode-cli; curl -fsS https://tools.veracode.com/veracode-cli/install | sh`;
+                core.info(`Installing Veracode CLI on ${runnerOS}`);
+                (0, child_process_1.execSync)(installCommand, { stdio: 'inherit' });
+                core.info('Veracode CLI installed successfully');
+            }
         }
-        else {
-            const installCommand = `curl -sSO https://downloads.veracode.com/securityscan/veracode-cli && chmod +x veracode && mkdir -p ../veracode-cli && mv veracode ../veracode-cli/`;
-            core.info(`Installing Veracode CLI on ${runnerOS}`);
-            (0, child_process_1.execSync)(installCommand);
-            core.info('Veracode CLI installed successfully');
+        catch (error) {
+            core.warning(`Failed to install Veracode CLI: ${error.message}`);
         }
-    }
-    catch (error) {
-        core.warning(`Failed to install Veracode CLI: ${error.message}`);
-    }
+    });
 }
 exports.install_cli = install_cli;
 
