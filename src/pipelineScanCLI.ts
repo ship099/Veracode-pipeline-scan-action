@@ -7,6 +7,8 @@ import { install_cli } from "./install-cli";
 
 function downloadPolicy(policyName: string, debug: any): string | null {
   try {
+    const path = require('path');
+    const fs = require('fs');
     const policyFileName = policyName.replace(/ /g, "_");
     const cliPath = process.env.RUNNER_OS === 'Windows' ? '../veracode-cli/veracode.exe' : '../veracode-cli/veracode';
     const command = `${cliPath} policy get "${policyName}"`;
@@ -17,8 +19,16 @@ function downloadPolicy(policyName: string, debug: any): string | null {
     }
 
     execSync(command);
-    core.info(`Policy file downloaded: ${policyFileName}.json`);
-    return `${policyFileName}.json`;
+
+    const policyFile = policyFileName;
+    const policyFileAbsolute = path.resolve(policyFile);
+
+    if (!fs.existsSync(policyFile)) {
+      throw new Error(`Policy file not found after download: ${policyFileAbsolute}`);
+    }
+
+    core.info(`Policy downloaded: ${policyFileAbsolute}`);
+    return policyFile;
   } catch (error: any) {
     core.warning(`Failed to download policy: ${error.message}`);
     return null;
