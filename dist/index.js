@@ -45669,6 +45669,8 @@ const run_command_1 = __nccwpck_require__(7383);
 const install_cli_1 = __nccwpck_require__(3614);
 function downloadPolicy(policyName, debug) {
     try {
+        const path = __nccwpck_require__(6928);
+        const fs = __nccwpck_require__(9896);
         const policyFileName = policyName.replace(/ /g, "_");
         const cliPath = process.env.RUNNER_OS === 'Windows' ? '../veracode-cli/veracode.exe' : '../veracode-cli/veracode';
         const command = `${cliPath} policy get "${policyName}"`;
@@ -45677,8 +45679,13 @@ function downloadPolicy(policyName, debug) {
             core.info(`Policy download command: ${command}`);
         }
         (0, child_process_1.execSync)(command);
-        core.info(`Policy file downloaded: ${policyFileName}.json`);
-        return `${policyFileName}.json`;
+        const policyFile = policyFileName;
+        const policyFileAbsolute = path.resolve(policyFile);
+        if (!fs.existsSync(policyFile)) {
+            throw new Error(`Policy file not found after download: ${policyFileAbsolute}`);
+        }
+        core.info(`Policy downloaded: ${policyFileAbsolute}`);
+        return policyFile;
     }
     catch (error) {
         core.warning(`Failed to download policy: ${error.message}`);
