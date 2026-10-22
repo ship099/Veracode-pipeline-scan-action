@@ -56,6 +56,14 @@ export async function pipelineScanCLI(parameters:any) {
       }
     }
 
+    if (parameters.json_output_file) {
+      pipelineScanCommand += ` --results-file ${parameters.json_output_file}`;
+    }
+
+    if (parameters.summary_output_file) {
+      pipelineScanCommand += ` --summary-output ${parameters.summary_output_file}`;
+    }
+
     await run_cli(pipelineScanCommand, parameters.debug, parameters.fail_build, parameters.fail_build_error, parameters.workflow_app);
 
     if (parameters.filtered_json_output_file) {
