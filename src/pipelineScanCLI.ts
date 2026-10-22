@@ -36,27 +36,27 @@ export async function pipelineScanCLI(parameters:any) {
       env.VERACODE_TRACE_ID = parameters.trace_id
     }
 
-    let pipelineScanCommand = `static scan ${parameters.file} --verbose`;
+    let pipelineScanCommand = `static scan "${parameters.file}" --verbose`;
 
     if (parameters.veracode_policy_name) {
       core.info('Downloading policy from veracode_policy_name parameter');
       const downloadedPolicyFile = downloadPolicy(parameters.veracode_policy_name, parameters.debug);
       if (downloadedPolicyFile) {
-        pipelineScanCommand += ` --policy-file ${downloadedPolicyFile}`;
+        pipelineScanCommand += ` --policy-file "${downloadedPolicyFile}"`;
       }
     }
 
     if (parameters.results_file || parameters.json_output_file) {
       const resultsFile = parameters.results_file || parameters.json_output_file;
-      pipelineScanCommand += ` --results-file ${resultsFile}`;
+      pipelineScanCommand += ` --results-file "${resultsFile}"`;
     }
 
     if (parameters.summary_output_file) {
-      pipelineScanCommand += ` --summary-output ${parameters.summary_output_file}`;
+      pipelineScanCommand += ` --summary-output "${parameters.summary_output_file}"`;
     }
 
     if (parameters.baseline_file) {
-      pipelineScanCommand += ` --baseline-file ${parameters.baseline_file}`;
+      pipelineScanCommand += ` --baseline-file "${parameters.baseline_file}"`;
     }
 
     if (parameters.fail_on_severity) {
