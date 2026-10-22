@@ -45671,33 +45671,23 @@ function downloadPolicy(policyName, debug) {
     try {
         const path = __nccwpck_require__(6928);
         const fs = __nccwpck_require__(9896);
-        const policyFileName = policyName.replace(/ /g, "_");
         const cliPath = process.env.RUNNER_OS === 'Windows' ? '../veracode-cli/veracode.exe' : '../veracode-cli/veracode';
         const command = `${cliPath} policy get "${policyName}"`;
         core.info(`Downloading policy: ${policyName}`);
-        core.info(`Expected policy filename: ${policyFileName}`);
         if (debug == "true") {
             core.info(`Policy download command: ${command}`);
         }
         (0, child_process_1.execSync)(command);
-        const policyFile = policyFileName;
-        const policyFileAbsolute = path.resolve(policyFile);
         const cwd = process.cwd();
-        core.info(`Current working directory: ${cwd}`);
-        // List files in current directory to see what was created
         const files = fs.readdirSync(cwd);
-        core.info(`Files in directory: ${files.join(', ')}`);
-        // Look for policy files
-        const policyFiles = files.filter((f) => f.includes('policy') || f.includes('Veracode'));
+        // Look for policy files (the CLI creates a file/directory with the exact policy name)
+        const policyFiles = files.filter((f) => f.includes(policyName) || f.includes('Veracode'));
         if (policyFiles.length > 0) {
-            core.info(`Found potential policy files: ${policyFiles.join(', ')}`);
-            return policyFiles[0];
+            const policyFile = policyFiles[0];
+            core.info(`Policy downloaded: ${policyFile}`);
+            return policyFile;
         }
-        if (!fs.existsSync(policyFile)) {
-            throw new Error(`Policy file not found after download: ${policyFileAbsolute}`);
-        }
-        core.info(`Policy downloaded: ${policyFileAbsolute}`);
-        return policyFile;
+        throw new Error(`Policy file not found after download`);
     }
     catch (error) {
         core.warning(`Failed to download policy: ${error.message}`);
@@ -45719,7 +45709,7 @@ function pipelineScanCLI(parameters) {
                 core.info('Downloading policy from veracode_policy_name parameter');
                 const downloadedPolicyFile = downloadPolicy(parameters.veracode_policy_name, parameters.debug);
                 if (downloadedPolicyFile) {
-                    pipelineScanCommand += ` --policy-file ${downloadedPolicyFile}`;
+                    pipelineScanCommand += ` --policy-file "${downloadedPolicyFile}"`;
                 }
             }
             if (parameters.json_output_file) {
