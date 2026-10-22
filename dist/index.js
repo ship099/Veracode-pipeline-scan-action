@@ -45675,12 +45675,24 @@ function downloadPolicy(policyName, debug) {
         const cliPath = process.env.RUNNER_OS === 'Windows' ? '../veracode-cli/veracode.exe' : '../veracode-cli/veracode';
         const command = `${cliPath} policy get "${policyName}"`;
         core.info(`Downloading policy: ${policyName}`);
+        core.info(`Expected policy filename: ${policyFileName}`);
         if (debug == "true") {
             core.info(`Policy download command: ${command}`);
         }
         (0, child_process_1.execSync)(command);
         const policyFile = policyFileName;
         const policyFileAbsolute = path.resolve(policyFile);
+        const cwd = process.cwd();
+        core.info(`Current working directory: ${cwd}`);
+        // List files in current directory to see what was created
+        const files = fs.readdirSync(cwd);
+        core.info(`Files in directory: ${files.join(', ')}`);
+        // Look for policy files
+        const policyFiles = files.filter((f) => f.includes('policy') || f.includes('Veracode'));
+        if (policyFiles.length > 0) {
+            core.info(`Found potential policy files: ${policyFiles.join(', ')}`);
+            return policyFiles[0];
+        }
         if (!fs.existsSync(policyFile)) {
             throw new Error(`Policy file not found after download: ${policyFileAbsolute}`);
         }
