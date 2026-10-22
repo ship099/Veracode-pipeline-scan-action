@@ -1,22 +1,19 @@
 import * as core from "@actions/core"
 import { execSync } from "child_process";
-import path from "path";
 
 const runnerOS = process.env.RUNNER_OS;
 
-export function install_cli(parameters: any) {
+export async function install_cli(parameters: any) {
   try {
     if (runnerOS == 'Windows') {
-      const appdata = process.env.APPDATA ?? "";
-      const cliPathVera = path.join(appdata, 'veracode')
-      const installCommand = `curl -sSO https://downloads.veracode.com/securityscan/veracode-cli-windows.exe && move veracode-cli-windows.exe "${cliPathVera}\\veracode.exe"`;
-      core.info(`Installing Veracode CLI on Windows: ${cliPathVera}`)
-      execSync(installCommand)
+      const psCommand = `Set-ExecutionPolicy AllSigned -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://tools.veracode.com/veracode-cli/install.ps1'))`
+      core.info('Installing Veracode CLI on Windows')
+      execSync(`powershell.exe -NoProfile -Command "${psCommand}"`, { stdio: 'inherit' })
       core.info('Veracode CLI installed successfully')
     } else {
-      const installCommand = `curl -sSO https://downloads.veracode.com/securityscan/veracode-cli && chmod +x veracode && mkdir -p ../veracode-cli && mv veracode ../veracode-cli/`;
+      const installCommand = `cd ..; mkdir -p veracode-cli; cd veracode-cli; curl -fsS https://tools.veracode.com/veracode-cli/install | sh`
       core.info(`Installing Veracode CLI on ${runnerOS}`)
-      execSync(installCommand)
+      execSync(installCommand, { stdio: 'inherit' })
       core.info('Veracode CLI installed successfully')
     }
   } catch (error: any) {
