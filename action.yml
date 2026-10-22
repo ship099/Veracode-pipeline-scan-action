@@ -117,6 +117,9 @@ inputs:
   fail_build_error:
     description: 'Fail the build upon errors. Takes true or false'
     required: false
+  trace_id:
+    description: 'Veracode trace ID for request tracking'
+    required: false
 runs:
   using: 'node24'
   main: 'dist/index.js'
