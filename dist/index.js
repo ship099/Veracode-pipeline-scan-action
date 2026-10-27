@@ -45722,12 +45722,18 @@ function pipelineScanCLI(parameters) {
             if (parameters.filtered_json_output_file) {
                 try {
                     const fs = yield Promise.resolve().then(() => __importStar(__nccwpck_require__(1943)));
-                    const resultsFile = parameters.json_output_file || 'results.json';
+                    const cliFilteredFile = 'filtered-results.json';
                     const filteredFile = parameters.filtered_json_output_file;
-                    core.info(`Creating filtered results file: ${filteredFile}`);
-                    const resultsData = yield fs.readFile(resultsFile, 'utf-8');
-                    yield fs.writeFile(filteredFile, resultsData);
-                    core.info(`Filtered results file created: ${filteredFile}`);
+                    core.info(`Copying CLI filtered results to: ${filteredFile}`);
+                    core.info(`From: ${cliFilteredFile}`);
+                    if (yield fs.stat(cliFilteredFile).catch(() => null)) {
+                        const resultsData = yield fs.readFile(cliFilteredFile, 'utf-8');
+                        yield fs.writeFile(filteredFile, resultsData);
+                        core.info(`Filtered results file created: ${filteredFile}`);
+                    }
+                    else {
+                        core.warning(`CLI filtered results file not found: ${cliFilteredFile}`);
+                    }
                 }
                 catch (error) {
                     core.warning(`Failed to create filtered results file: ${error.message}`);

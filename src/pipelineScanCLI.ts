@@ -71,13 +71,19 @@ export async function pipelineScanCLI(parameters:any) {
     if (parameters.filtered_json_output_file) {
       try {
         const fs = await import('fs/promises');
-        const resultsFile = parameters.json_output_file || 'results.json';
+        const cliFilteredFile = 'filtered-results.json';
         const filteredFile = parameters.filtered_json_output_file;
 
-        core.info(`Creating filtered results file: ${filteredFile}`);
-        const resultsData = await fs.readFile(resultsFile, 'utf-8');
-        await fs.writeFile(filteredFile, resultsData);
-        core.info(`Filtered results file created: ${filteredFile}`);
+        core.info(`Copying CLI filtered results to: ${filteredFile}`);
+        core.info(`From: ${cliFilteredFile}`);
+
+        if (await fs.stat(cliFilteredFile).catch(() => null)) {
+          const resultsData = await fs.readFile(cliFilteredFile, 'utf-8');
+          await fs.writeFile(filteredFile, resultsData);
+          core.info(`Filtered results file created: ${filteredFile}`);
+        } else {
+          core.warning(`CLI filtered results file not found: ${cliFilteredFile}`);
+        }
       } catch (error: any) {
         core.warning(`Failed to create filtered results file: ${error.message}`);
       }
