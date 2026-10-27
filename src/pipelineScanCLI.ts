@@ -95,10 +95,26 @@ export async function pipelineScanCLI(parameters:any) {
           }
         }
 
-        // Verify the file was created
+        // Verify the file was created and has correct structure
         if (await fs.stat(filteredFile).catch(() => null)) {
           const stats = await fs.stat(filteredFile);
           core.info(`Filtered results file created successfully: ${filteredFile} (${stats.size} bytes)`);
+
+          // Log first 500 chars to verify structure
+          const content = await fs.readFile(filteredFile, 'utf-8');
+          const preview = content.substring(0, 500);
+          core.info(`File content preview: ${preview}`);
+
+          try {
+            const json = JSON.parse(content);
+            if (json.findings) {
+              core.info(`File has 'findings' array with ${json.findings.length} items`);
+            } else {
+              core.warning(`File missing 'findings' array. Keys: ${Object.keys(json).join(', ')}`);
+            }
+          } catch (e: any) {
+            core.warning(`File is not valid JSON: ${e.message}`);
+          }
         } else {
           core.warning(`Failed to create filtered results file: ${filteredFile}`);
         }
