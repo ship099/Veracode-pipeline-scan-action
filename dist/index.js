@@ -45905,7 +45905,7 @@ function run_cli(command, debug, failBuildOnPolicy, failBuildOnError, workflowAp
                 const workflowAppBool = String(workflowApp).toLowerCase() === "true";
                 if (exitCode === 3) {
                     const failureMessage = `Veracode static scan completed but policy failed. Exit code: ${exitCode}`;
-                    if (failBuildOnPolicyBool && !workflowAppBool) {
+                    if (failBuildOnPolicyBool) {
                         core.setFailed(failureMessage);
                         core.info(`Note: Build failed due to fail_build flag being set to true.`);
                     }
@@ -45947,7 +45947,7 @@ function run_cli(command, debug, failBuildOnPolicy, failBuildOnError, workflowAp
                 const workflowAppBool = String(workflowApp).toLowerCase() === "true";
                 if (exitCode === 3) {
                     const failureMessage = `Veracode static scan completed but policy failed. Exit code: ${exitCode}`;
-                    if (failBuildOnPolicyBool && !workflowAppBool) {
+                    if (failBuildOnPolicyBool) {
                         core.setFailed(failureMessage);
                         core.info(`Note: Build failed due to fail_build flag being set to true.`);
                     }

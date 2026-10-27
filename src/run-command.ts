@@ -31,7 +31,7 @@ export async function run_cli(command: string, debug: any, failBuildOnPolicy: bo
 
             if (exitCode === 3) {
                 const failureMessage = `Veracode static scan completed but policy failed. Exit code: ${exitCode}`;
-                if (failBuildOnPolicyBool && !workflowAppBool) {
+                if (failBuildOnPolicyBool) {
                     core.setFailed(failureMessage);
                     core.info(`Note: Build failed due to fail_build flag being set to true.`)
                 } else {
@@ -71,7 +71,7 @@ export async function run_cli(command: string, debug: any, failBuildOnPolicy: bo
 
             if (exitCode === 3) {
                 const failureMessage = `Veracode static scan completed but policy failed. Exit code: ${exitCode}`;
-                if (failBuildOnPolicyBool && !workflowAppBool) {
+                if (failBuildOnPolicyBool) {
                     core.setFailed(failureMessage);
                     core.info(`Note: Build failed due to fail_build flag being set to true.`)
                 } else {
