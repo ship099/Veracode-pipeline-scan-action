@@ -45724,15 +45724,34 @@ function pipelineScanCLI(parameters) {
                     const fs = yield Promise.resolve().then(() => __importStar(__nccwpck_require__(1943)));
                     const cliFilteredFile = 'filtered-results.json';
                     const filteredFile = parameters.filtered_json_output_file;
-                    core.info(`Copying CLI filtered results to: ${filteredFile}`);
-                    core.info(`From: ${cliFilteredFile}`);
+                    const jsonOutputFile = parameters.json_output_file || 'results.json';
+                    core.info(`Target filtered results file: ${filteredFile}`);
+                    // Try to copy CLI's filtered-results.json first
                     if (yield fs.stat(cliFilteredFile).catch(() => null)) {
+                        core.info(`Found CLI filtered results file: ${cliFilteredFile}`);
                         const resultsData = yield fs.readFile(cliFilteredFile, 'utf-8');
                         yield fs.writeFile(filteredFile, resultsData);
-                        core.info(`Filtered results file created: ${filteredFile}`);
+                        core.info(`Copied ${cliFilteredFile} to ${filteredFile}`);
                     }
                     else {
-                        core.warning(`CLI filtered results file not found: ${cliFilteredFile}`);
+                        // Fallback: copy json_output_file if filtered file doesn't exist
+                        core.info(`CLI filtered results not found, copying from ${jsonOutputFile}`);
+                        if (yield fs.stat(jsonOutputFile).catch(() => null)) {
+                            const resultsData = yield fs.readFile(jsonOutputFile, 'utf-8');
+                            yield fs.writeFile(filteredFile, resultsData);
+                            core.info(`Copied ${jsonOutputFile} to ${filteredFile}`);
+                        }
+                        else {
+                            core.warning(`Neither ${cliFilteredFile} nor ${jsonOutputFile} found`);
+                        }
+                    }
+                    // Verify the file was created
+                    if (yield fs.stat(filteredFile).catch(() => null)) {
+                        const stats = yield fs.stat(filteredFile);
+                        core.info(`Filtered results file created successfully: ${filteredFile} (${stats.size} bytes)`);
+                    }
+                    else {
+                        core.warning(`Failed to create filtered results file: ${filteredFile}`);
                     }
                 }
                 catch (error) {
